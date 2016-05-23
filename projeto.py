@@ -8,6 +8,7 @@ import numpy as np
 from scipy import *
 from pylab import *
 from scipy.io import wavfile
+import os
 
 #Then we set our analysis parameters DFT size (N) and hopsize (H)
 
@@ -17,6 +18,7 @@ H = N/4
 ###Take in an input soundfile name and a timescale factor from the command line:
 
 # read input and get the timescale factor
+os.listdir(os.getcwd())
 
 (sr,signalin) = wavfile.read(sys.argv[2])
 L = len(signalin)
@@ -25,12 +27,14 @@ tscale = float(sys.argv[1])
 ###Set up our signal arrays to hold the processing output
 
 #adjusting the shape of matrix (making it single dimentional)
-
-m, n = signalin.shape
-sinal = zeros(m)
-
-for i in xrange(m):
-	sinal[i] = signalin[i][0]
+k = signalin.shape
+if len(k) == 1:
+	sinal = signalin
+else :
+	m, n = signalin.shape
+	sinal = zeros(m)
+	for i in xrange(m):
+		sinal[i] = signalin[i][0]
 
 # signal blocks for processing and output
 phi  = zeros(N)
