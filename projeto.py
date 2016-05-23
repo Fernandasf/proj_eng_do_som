@@ -9,22 +9,96 @@ from scipy import *
 from pylab import *
 from scipy.io import wavfile
 import os
+import time
+from pydub import AudioSegment
+import pyglet
 
 #Then we set our analysis parameters DFT size (N) and hopsize (H)
 
 N = 2048
 H = N/4
 
-###Take in an input soundfile name and a timescale factor from the command line:
+		###Take in an input soundfile name and a timescale factor from the command line:
 
-# read input and get the timescale factor
-os.listdir(os.getcwd())
 
-(sr,signalin) = wavfile.read(sys.argv[2])
+#clears terminal page
+os.system('cls' if os.name == 'nt' else 'clear')
+
+print("LEMBRE-SE, PARA ALTERAR UM ARQUIVO, O MESMO DEVE ESTAR NESTE DIRETÓRIO.")
+time.sleep(3)
+
+#clears terminal page
+os.system('cls' if os.name == 'nt' else 'clear')
+
+
+##asks the user for file's name 
+
+# read file's input
+print("Escreva o nome exatamente igual ao listado de uma dentre essas opções que você gostaria de modificar:\n")
+
+#lists all files in directory so that the user can choose one
+for subdir, dirs, files in os.walk('./'):
+    for file in files:
+    	if file.endswith(".wav") or file.endswith(".mp3") or file.endswith(".wma") or file.endswith(".aac") or file.endswith(".ogg") or file.endswith(".flv"):
+      		print file
+print ("\n")
+
+wrote_right = 0
+while(wrote_right == 0):
+	name = raw_input()
+	for subdir, dirs, files in os.walk('./'):
+		for file in files:
+			if file == name: 
+				wrote_right = 1
+				break
+
+	if wrote_right == 0:
+		print ("Tente novamente \n")
+
+# if file.endswith(".wav") == 1:
+# 	print("entrou")
+# 	(sr,signalin) = wavfile.read(name)
+
+# else:
+# 	if file.endswith(".mp3")  == 1 :
+# 		song = AudioSegment.from_mp3(name)
+# 		song.export("song.wav", format="wav")
+
+# 	if file.endswith(".wma") == 1:
+# 		song = AudioSegment.from_wma(name, "wma")
+# 		song.export("song.wav", format="wav")
+
+# 	if file.endswith(".acc") == 1:
+# 		song = AudioSegment.from_wma(name, "aac")
+# 		song.export("song.wav", format="wav")
+
+# 	if file.endswith(".ogg") == 1:
+# 		song = AudioSegment.from_ogg(name)
+# 		song.export("song.wav", format="wav")
+
+# 	if file.endswith(".flv") == 1:
+# 		song = AudioSegment.from_flv(name)
+# 		song.export("song.wav", format="wav")
+	
+# 	#(sr,signalin) = wavfile.read("song.wav")
+
+(sr,signalin) = wavfile.read(name)
+
+
+
 L = len(signalin)
-tscale = float(sys.argv[1])
 
-###Set up our signal arrays to hold the processing output
+#clears terminal page
+os.system('cls' if os.name == 'nt' else 'clear')
+
+#asks the user for timescale factor
+tscale = float(raw_input("Escreva a escala de tempo (ou seja, o numero de vezes que voce quer que o novo audio seja mais rapido que o audio dado). Lembre-se que esse número deve ser escrito com ponto, não vírgula e de apertar 'return/enter' ao terminar \n\n"))
+
+#clears terminal page
+os.system('cls' if os.name == 'nt' else 'clear')
+
+
+		###Set up our signal arrays to hold the processing output
 
 #adjusting the shape of matrix (making it single dimentional)
 k = signalin.shape
@@ -45,7 +119,7 @@ sigout = zeros(L/tscale+N)
 amp = signalin.max()
 win = hanning(N)
 
-###Time-scaling part:
+		###Time-scaling part:
 
 #This is the processing loop. We ll do the PV idea in a slightly different way
 #from the example in the book. There, we created a spectral signal made up of
@@ -88,5 +162,48 @@ while p < L-(N+H):
 
 # write file to output, scaling it to original amp
 
-wavfile.write(sys.argv[3],sr,array(amp*sigout/max(sigout), dtype='int16'))
+wavfile.write("new.wav",sr,array(amp*sigout/max(sigout), dtype='int16'))
 
+#clears terminal page
+os.system('cls' if os.name == 'nt' else 'clear')
+
+print("Seu novo arquivo se chama 'new.wav' e está no mesmo diretorio do seu original")
+
+
+
+
+
+# music = pyglet.media.load('new.wav')
+
+# #convert output file to desired extension
+
+# # extension = input("Em qual extensão voce gostaria do arquivo? \n\n")
+
+# # if extension == "wav\n" or extension == ".wav\n":
+# # 	music = pyglet.media.load('new.wav')
+
+# # else :
+# # 	new  = AudioSegment.from_wav("new.wav")
+
+# # 	if extension == "mp3\n" or extension == ".mp3\n":
+# # 		new.export("new.mp3", format = "mp3")
+# # 		music = pyglet.media.load('new.mp3')
+
+# # 	if extension == "wma" or extension == ".wma":
+# # 		new.export("song.wma", format="wma")
+# # 		music = pyglet.media.load('new.wma')
+	
+# # 	if extension == "acc" or extension == ".acc":
+# # 		new.export("song.acc", format="acc")
+# # 		music = pyglet.media.load('new.acc')
+
+# # 	if extension == "ogg" or extension == ".ogg":
+# # 		new.export("song.ogg", format="ogg")
+# # 		music = pyglet.media.load('new.ogg')
+
+# # 	if extension == "flv" or extension == ".flv":
+# # 		new.export("song.flv", format="flv")
+# # 		music = pyglet.media.load('new.flv')
+
+# music.play()
+# pyglet.app.run()
