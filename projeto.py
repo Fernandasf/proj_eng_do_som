@@ -10,7 +10,90 @@ import time
 from pydub import AudioSegment
 import pyglet
 
-#Then we set our analysis parameters DFT size (N) and hopsize (H)
+### FUNCTION THAT SCALES TIME
+
+
+def vocoder (sinal, tscale):
+
+	phi  = zeros(N)
+	out = zeros(N, dtype=complex)
+	sigout = zeros(L/tscale+N)
+
+	# max input amp, window
+	win = hanning(N)
+
+	###Time-scaling part:
+
+	#This is the processing loop. We ll do the PV idea in a slightly different way
+	#from the example in the book. There, we created a spectral signal made up of
+	#amp,freq frames. Here we will not bother with this, we will just move along
+	#the input, calculating the PV parameters of two consecutive windows and then
+	#resynthesise these straight away. Timescale changes will happen if we move
+	#along the input at a different hopsize than H. The input will be overlap-
+	#added every H samples, which is also the hopsize basis of our PV analyses
+	#(the hop between the two consecutive analyses).
+
+	p = 0
+	i = 0
+	pp = 0
+	while p < L-(N+H):
+
+		# take the spectra of two consecutive windows
+		p1 = int(p)
+		spec1 =  fft(win*sinal[p1:p1+N])
+		spec2 =  fft(win*sinal[p1+H:p1+N+H])
+
+		## take their phase difference and integrate
+		phi += (angle(spec2) - angle(spec1))
+
+		## bring the phase back to between pi and -pi
+		while i < N: 
+			while phi[i] < -pi:
+				phi[i] += 2*pi 
+			while phi[i] >= pi: 
+				phi[i] -= 2*pi
+			i+=1
+		
+		out.real, out.imag = cos(phi), sin(phi)
+
+		## inverse FFT and overlap-add
+		
+		sigout[pp:pp+N] += win*ifft(abs(spec2)*out)
+		pp += H
+		p += H*tscale
+
+	return sigout
+
+
+#The transposing function acts first stretching the original audio file than using doppler effect to change its frequency
+#The parameters in this function are y: vector in wavefile
+#The fcale parameter is the frequency scale (e.g. is fscale = 2 the frequecy is twice the first one)
+
+def vocoder_transpose( y, fscale ):
+
+	x1 = vocoder(y,1/fscale)
+	x = zeros(round(len(x1)/fscale))
+	print(len(x))
+	print(len(x1))
+
+	
+   
+	for i in xrange(len(x)):
+		j=i*fscale
+		jnext=np.ceil(j)
+		jprev=np.floor(j)
+		if jnext <= len(x1):
+			if jnext != jprev:
+				if jnext < len(x1):
+			  		x[i]=x1[jprev] + (j-jprev)*(x1[jnext]-x1[jprev])/(jnext-jprev);
+			else:
+			  x[i]=x1[j]; 
+	
+	return x
+
+
+##This is where our routine starts
+#We set our analysis parameters DFT size (N) and hopsize (H)
 
 N = 2048
 H = N/4
@@ -22,7 +105,7 @@ H = N/4
 os.system('cls' if os.name == 'nt' else 'clear')
 
 print("LEMBRE-SE, PARA ALTERAR UM ARQUIVO, O MESMO DEVE ESTAR NESTE DIRETÓRIO.")
-time.sleep(3)
+time.sleep(2)
 
 #clears terminal page
 os.system('cls' if os.name == 'nt' else 'clear')
@@ -35,9 +118,9 @@ print("Escreva o nome exatamente igual ao listado de uma dentre essas opções q
 
 #lists all files in directory so that the user can choose one
 for subdir, dirs, files in os.walk('./'):
-    for file in files:
-    	if file.endswith(".wav") or file.endswith(".mp3") or file.endswith(".wma") or file.endswith(".aac") or file.endswith(".ogg") or file.endswith(".flv"):
-      		print file
+	for file in files:
+		if file.endswith(".wav") or file.endswith(".mp3") or file.endswith(".wma") or file.endswith(".aac") or file.endswith(".ogg") or file.endswith(".flv"):
+			print file
 print ("\n")
 
 wrote_right = 0
@@ -62,6 +145,12 @@ L = len(signalin)
 os.system('cls' if os.name == 'nt' else 'clear')
 
 #asks the user for timescale factor
+fscale = float(raw_input("Escreva quantos tons acima ou abaixo voce quer transpor \n. Lembre-se que esse número deve ser escrito com ponto, não vírgula e de apertar 'return/enter' ao terminar \n\n"))
+
+#clears terminal page
+os.system('cls' if os.name == 'nt' else 'clear')
+
+#asks the user for timescale factor
 tscale = float(raw_input("Escreva a escala de tempo (ou seja, o numero de vezes que voce quer que o novo audio seja mais rapido que o audio dado). Lembre-se que esse número deve ser escrito com ponto, não vírgula e de apertar 'return/enter' ao terminar \n\n"))
 
 #clears terminal page
@@ -80,55 +169,16 @@ else :
 	for i in xrange(m):
 		sinal[i] = signalin[i][0]
 
-# signal blocks for processing and output
-phi  = zeros(N)
-out = zeros(N, dtype=complex)
-sigout = zeros(L/tscale+N)
-
-# max input amp, window
 amp = signalin.max()
-win = hanning(N)
 
-		###Time-scaling part:
+##calling fuction that changes timescale
 
-#This is the processing loop. We ll do the PV idea in a slightly different way
-#from the example in the book. There, we created a spectral signal made up of
-#amp,freq frames. Here we will not bother with this, we will just move along
-#the input, calculating the PV parameters of two consecutive windows and then
-#resynthesise these straight away. Timescale changes will happen if we move
-#along the input at a different hopsize than H. The input will be overlap-
-#added every H samples, which is also the hopsize basis of our PV analyses
-#(the hop between the two consecutive analyses).
 
-p = 0
-i = 0
-pp = 0
-while p < L-(N+H):
+x = vocoder_transpose(sinal, fscale)
+sigout = vocoder(x, tscale)
 
-	# take the spectra of two consecutive windows
-	p1 = int(p)
-	spec1 =  fft(win*sinal[p1:p1+N])
-	spec2 =  fft(win*sinal[p1+H:p1+N+H])
 
-	## take their phase difference and integrate
-	phi += (angle(spec2) - angle(spec1))
-
-	## bring the phase back to between pi and -pi
-	while i < N: 
-		while phi[i] < -pi:
-			phi[i] += 2*pi 
-		while phi[i] >= pi: 
-			phi[i] -= 2*pi
-		i+=1
-	
-	out.real, out.imag = cos(phi), sin(phi)
-
-	## inverse FFT and overlap-add
-	
-	sigout[pp:pp+N] += win*ifft(abs(spec2)*out)
-	pp += H
-	p += H*tscale
-
+		
 
 # write file to output, scaling it to original amp
 
@@ -138,6 +188,34 @@ wavfile.write("new.wav",sr,array(amp*sigout/max(sigout), dtype='int16'))
 os.system('cls' if os.name == 'nt' else 'clear')
 
 print("Seu novo arquivo se chama 'new.wav' e está no mesmo diretorio do seu original")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
