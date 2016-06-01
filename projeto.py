@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 
-###PARA RODAR USE
-#python projeto.py <escala_de_tempo> <nome_do_arquivo> new.wav
-
 import sys
 import numpy as np
 from scipy import *
@@ -55,36 +52,9 @@ while(wrote_right == 0):
 	if wrote_right == 0:
 		print ("Tente novamente \n")
 
-# if file.endswith(".wav") == 1:
-# 	print("entrou")
-# 	(sr,signalin) = wavfile.read(name)
 
-# else:
-# 	if file.endswith(".mp3")  == 1 :
-# 		song = AudioSegment.from_mp3(name)
-# 		song.export("song.wav", format="wav")
-
-# 	if file.endswith(".wma") == 1:
-# 		song = AudioSegment.from_wma(name, "wma")
-# 		song.export("song.wav", format="wav")
-
-# 	if file.endswith(".acc") == 1:
-# 		song = AudioSegment.from_wma(name, "aac")
-# 		song.export("song.wav", format="wav")
-
-# 	if file.endswith(".ogg") == 1:
-# 		song = AudioSegment.from_ogg(name)
-# 		song.export("song.wav", format="wav")
-
-# 	if file.endswith(".flv") == 1:
-# 		song = AudioSegment.from_flv(name)
-# 		song.export("song.wav", format="wav")
-	
-# 	#(sr,signalin) = wavfile.read("song.wav")
-
-(sr,signalin) = wavfile.read(name)
-
-
+if name.endswith(".wav") == 1:
+	(sr,signalin) = wavfile.read(name)
 
 L = len(signalin)
 
