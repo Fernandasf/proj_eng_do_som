@@ -1,0 +1,8 @@
+
+fs=44100;
+
+y=sin()
+
+x=vocoder(y,fact);
+sound(x,Fs);
+%sound(y,Fs);
