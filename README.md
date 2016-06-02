@@ -18,7 +18,7 @@ Tambem são necessarias os seguintes módulos:
 >sys, numpy, scipy, pylab, scipy.io, os, time, pydub
 
 Todos são facilmente instalados usando:
-.. code-block:: bash
+
 	
 	$ sudo pip install <nome_do_módulo>
 
@@ -28,12 +28,12 @@ Tenha certeza que voce tem pip instalado e funcionando corretamente
 
 Para iniciar o seu programa voce precisa acessar no seu terminal seu diretorio em que se encontra o arquivo "projeto.py" e seu arquivo original que deseja alterar. Você pode fazer isso da seguinte forma
 
-.. code-block:: bash
+
 
 	$ cd ./caminho/para/seu/diretorio/atual
 
 Para executar o programa basta digitar em seu terminal (com o python já instalado)
 
-.. code-block:: bash
+
 
 	$ python projeto.py
