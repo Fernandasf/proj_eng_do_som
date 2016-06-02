@@ -31,7 +31,7 @@ Para iniciar o seu programa voce precisa acessar no seu terminal seu diretorio e
 
 
 
-	$ cd ./caminho/para/seu/diretorio/atual
+	$ cd /caminho/para/seu/diretorio/atual
 
 Para executar o programa basta digitar em seu terminal (com o python já instalado)
 
