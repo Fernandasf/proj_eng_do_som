@@ -8,10 +8,11 @@
 Para executar o projeto seu sistema deve ter instalado Python 2.7 ou superior.
 
 Também é necessário que seu arquivo original esteja no mesmo diretorio do arquivo com extensão '.py'
-Alem disso voce necessita de 'FFmpeg <https://ffmpeg.org/>'_ instalado em seu computador.
-Para uma instalação facil é indicado o 'proprio site <https://ffmpeg.org/download.html#get-sources>'_ com seu guia de Download.
+Alem disso voce necessita de [FFmpeg] instalado em seu computador.
+Para uma instalação facil é indicado o proprio site com seu guia de [Download].
 
-
+[FFmpeg]: https://ffmpeg.org/
+[Download]: https://ffmpeg.org/download.html#get-sources
 
 Tambem são necessarias os seguintes módulos:
 
