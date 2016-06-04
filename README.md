@@ -23,7 +23,10 @@ Todos são facilmente instalados usando:
 	
 	$ sudo pip install <nome_do_módulo>
 
-Tenha certeza que voce tem pip instalado e funcionando corretamente
+Tenha certeza que voce tem pip instalado e funcionando corretamente. Se não tiver pip instalado em seu computador, isso pode ser feito com o seguinte comando em um terminal:
+
+
+	$ sudo apt-get install python-pip
 
 ##Execução
 
