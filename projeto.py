@@ -7,10 +7,13 @@ from pylab import *
 from scipy.io import wavfile
 import os
 import time
-from pydub import AudioSegment
-import pyglet
+import pydub
+import subprocess
 
 ### FUNCTION THAT SCALES TIME
+
+def play(audio_file_path):
+	subprocess.call(["ffplay", "-nodisp", "-autoexit", audio_file_path])
 
 
 def vocoder (sinal, tscale):
@@ -65,17 +68,15 @@ def vocoder (sinal, tscale):
 	return sigout
 
 
-#The transposing function acts first stretching the original audio file than using doppler effect to change its frequency
-#The parameters in this function are y: vector in wavefile
-#The fcale parameter is the frequency scale (e.g. is fscale = 2 the frequecy is twice the first one)
+#The transposing function acts first stretching the original audio file than
+#using doppler effect to change its frequency. The parameters in this function
+#are y: vector in wavefile. The fcale parameter is the frequency scale (e.g. is
+#fscale = 2 the frequecy is twice the first one)
 
 def vocoder_transpose( y, fscale ):
 
 	x1 = vocoder(y,1/fscale)
 	x = zeros(round(len(x1)/fscale))
-	print(len(x))
-	print(len(x1))
-
 	
    
 	for i in xrange(len(x)):
@@ -93,165 +94,224 @@ def vocoder_transpose( y, fscale ):
 
 
 ##This is where our routine starts
+
 #We set our analysis parameters DFT size (N) and hopsize (H)
 
 N = 2048
 H = N/4
 
-		###Take in an input soundfile name and a timescale factor from the command line:
+		###Take in an input soundfile name and a timescale factor from the
+		###command line:
+
+not_finished = 1
+not_converted = 1
+
+#The convertion function in pydub automatcally exits the routine, so for not
+#asking the user all the information again we have to use some if and while
+#statements for running the routine till the file is in .wav format
+
+while not_finished:
+
+	if not_converted:
+
+		#clears terminal page
+		os.system('cls' if os.name == 'nt' else 'clear')
+
+		print("LEMBRE-SE, PARA ALTERAR UM ARQUIVO, O MESMO DEVE ESTAR NESTE DIRETÓRIO.")
+		time.sleep(3)
+
+		#clears terminal page
+		os.system('cls' if os.name == 'nt' else 'clear')
 
 
-#clears terminal page
-os.system('cls' if os.name == 'nt' else 'clear')
+		##asks the user for file's name 
 
-print("LEMBRE-SE, PARA ALTERAR UM ARQUIVO, O MESMO DEVE ESTAR NESTE DIRETÓRIO.")
-time.sleep(2)
+		# read file's input
+		print("Escreva o nome exatamente igual ao listado de uma dentre essas opções que você gostaria de modificar:\n")
 
-#clears terminal page
-os.system('cls' if os.name == 'nt' else 'clear')
+		#lists all files in directory so that the user can choose one
+		for subdir, dirs, files in os.walk('./'):
+			for file in files:
+				if file.endswith(".wav") or file.endswith(".mp3") or file.endswith(".wma") or file.endswith(".aac") or file.endswith(".ogg") or file.endswith(".flv"):
+					print file
+		print ("\n")
 
+		#check if user typed the right name of file
 
-##asks the user for file's name 
+		wrote_right = 0
+		while(wrote_right == 0):
+			name = raw_input()
+			for subdir, dirs, files in os.walk('./'):
+				for file in files:
+					if file == name: 
+						wrote_right = 1
+						break
 
-# read file's input
-print("Escreva o nome exatamente igual ao listado de uma dentre essas opções que você gostaria de modificar:\n")
-
-#lists all files in directory so that the user can choose one
-for subdir, dirs, files in os.walk('./'):
-	for file in files:
-		if file.endswith(".wav") or file.endswith(".mp3") or file.endswith(".wma") or file.endswith(".aac") or file.endswith(".ogg") or file.endswith(".flv"):
-			print file
-print ("\n")
-
-wrote_right = 0
-while(wrote_right == 0):
-	name = raw_input()
-	for subdir, dirs, files in os.walk('./'):
-		for file in files:
-			if file == name: 
-				wrote_right = 1
-				break
-
-	if wrote_right == 0:
-		print ("Tente novamente \n")
+			if wrote_right == 0:
+				print ("Tente novamente \n")
 
 
-if name.endswith(".wav") == 1:
-	(sr,signalin) = wavfile.read(name)
-
-L = len(signalin)
-
-#clears terminal page
-os.system('cls' if os.name == 'nt' else 'clear')
-
-#asks the user for timescale factor
-fscale = float(raw_input("Escreva quantos tons acima ou abaixo voce quer transpor \n. Lembre-se que esse número deve ser escrito com ponto, não vírgula e de apertar 'return/enter' ao terminar \n\n"))
-
-#clears terminal page
-os.system('cls' if os.name == 'nt' else 'clear')
-
-#asks the user for timescale factor
-tscale = float(raw_input("Escreva a escala de tempo (ou seja, o numero de vezes que voce quer que o novo audio seja mais rapido que o audio dado). Lembre-se que esse número deve ser escrito com ponto, não vírgula e de apertar 'return/enter' ao terminar \n\n"))
-
-#clears terminal page
-os.system('cls' if os.name == 'nt' else 'clear')
+		path_to_name = "./"+name
 
 
-		###Set up our signal arrays to hold the processing output
 
-#adjusting the shape of matrix (making it single dimentional)
-k = signalin.shape
-if len(k) == 1:
-	sinal = signalin
-else :
-	m, n = signalin.shape
-	sinal = zeros(m)
-	for i in xrange(m):
-		sinal[i] = signalin[i][0]
+	#checks if file is in .wav format. If its not, convert it for further use.
+	#In each format different than .wav it checks if its already converted to
+	#.wav. The convertion process creates a new file called "sound". It shall
+	#be removed by this programm in the end of the routine.
 
-amp = signalin.max()
-
-##calling fuction that changes timescale
-
-
-x = vocoder_transpose(sinal, fscale)
-sigout = vocoder(x, tscale)
-
-
+	if name.endswith(".wav"):
+		if not_converted:
+			(sr,signalin) = wavfile.read(name)
 		
 
-# write file to output, scaling it to original amp
+	if name.endswith(".mp3"): 
+		if not_converted: 
+			not_converted = 0
+			sound = pydub.AudioSegment.from_mp3(path_to_name)
+			sound.export("./temp.wav", format="wav")
+			name = "temp.wav"
+			(sr,signalin) = wavfile.read(name)
 
-wavfile.write("new.wav",sr,array(amp*sigout/max(sigout), dtype='int16'))
+		
+	if name.endswith(".wma"):
+		if not_converted: 
+			not_converted = 0
+			sound = pydub.AudioSegment.from_wma(path_to_name)
+			sound.export("./sound.wav", format="wav")
+			name = "temp.wav"
+			(sr,signalin) = wavfile.read(name)
 
-#clears terminal page
-os.system('cls' if os.name == 'nt' else 'clear')
+		
+	if name.endswith(".acc"):
+		if not_converted: 
+			not_converted = 0
+			sound = pydub.AudioSegment.from_acc(path_to_name)
+			sound.export("./sound.wav", format="wav")
+			name = "temp.wav"
+			(sr,signalin) = wavfile.read(name)
 
-print("Seu novo arquivo se chama 'new.wav' e está no mesmo diretorio do seu original")
+	if name.endswith(".ogg"):
+		if not_converted: 
+			not_converted = 0
+			sound = pydub.AudioSegment.from_ogg(path_to_name)
+			sound.export("./sound.wav", format="wav")
+			name = "temp.wav"
+			(sr,signalin) = wavfile.read(name)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	if name.endswith(".flv"):
+		if not_converted: 
+			not_converted = 0
+			sound = pydub.AudioSegment.from_wma(path_to_name)
+			sound.export("./sound.wav", format="wav")
+			name = "temp.wav"
+			(sr,signalin) = wavfile.read(name)
+		
 
 
+	L = len(signalin)
 
-# music = pyglet.media.load('new.wav')
+	#clears terminal page
+	os.system('cls' if os.name == 'nt' else 'clear')
 
-# #convert output file to desired extension
+	#asks the user for timescale factor. The tscale factor shall be given in tones and than transformed in frequency scale using a 12-tone equal temperament scale
+	fscale = float(raw_input("Escreva quantos tons acima ou abaixo voce quer transpor.\nLembre-se que se quiser transpor semi-tons esse número deve ser escrito com ponto, não vírgula e que se quiser transpor a tons abaixo deve escrever um número negativo.\nAperte 'return/enter' ao terminar \n\n"))
+	fscale = 2**((fscale*2)/12)
 
-# # extension = input("Em qual extensão voce gostaria do arquivo? \n\n")
+	#clears terminal page
+	os.system('cls' if os.name == 'nt' else 'clear')
 
-# # if extension == "wav\n" or extension == ".wav\n":
-# # 	music = pyglet.media.load('new.wav')
+	#asks the user for timescale factor
+	tscale = float(raw_input("Escreva a escala de tempo (ou seja, o numero de vezes que voce quer que o novo audio seja mais rapido que o audio dado).\nLembre-se que esse número deve ser escrito com ponto, não vírgula.\nAperte 'return/enter' ao terminar \n\n"))
 
-# # else :
-# # 	new  = AudioSegment.from_wav("new.wav")
 
-# # 	if extension == "mp3\n" or extension == ".mp3\n":
-# # 		new.export("new.mp3", format = "mp3")
-# # 		music = pyglet.media.load('new.mp3')
+	#clears terminal page
+	os.system('cls' if os.name == 'nt' else 'clear')
 
-# # 	if extension == "wma" or extension == ".wma":
-# # 		new.export("song.wma", format="wma")
-# # 		music = pyglet.media.load('new.wma')
+
+			###Set up our signal arrays to hold the processing output
+
+	#adjusting the shape of matrix (making it single dimentional)
+	k = signalin.shape
+	if len(k) == 1:
+		sinal = signalin
+	else :
+		m, n = signalin.shape
+		sinal = zeros(m)
+		for i in xrange(m):
+			sinal[i] = signalin[i][0]
+
+	amp = signalin.max()
+
+	### THIS IS WHERE THE VOCODER WORKS
+
+	print("O PROGRAMA ESTÁ RODANDO, AGUARDE UM POUCO (o tempo de processamento dura aproximadamente metade da duração da sua musica).\nNão se preocupe com o erro que aparece abaixo\n\n\n\n\n")
+
+
+	x = vocoder_transpose(sinal, fscale)
+	sigout = vocoder(x, tscale)
+
+
+	# write file to output, scaling it to original amp
+
+	wavfile.write("new.wav",sr,array(amp*sigout/max(sigout), dtype='int16'))
+
+
+	# asks user for the wanted name and extension of output file
+
+	#clears terminal page
+	os.system('cls' if os.name == 'nt' else 'clear')
+
+	output_name = raw_input("Escreva o nome desejado do arquivo final. Aperte 'return/enter' ao terminar \n\n")
+
+	#clears terminal page
+	os.system('cls' if os.name == 'nt' else 'clear')
+
+
+
+	print("Escreva a extensão desejada do arquivo final.\nEla pode ser uma entre a seguinte lista:\n.wav, .mp3, .wma, .acc, .ogg, .flv\nAperte 'return/enter' ao terminar\n\n")
+	format_right = 1
+	while format_right:
+		output_extension = raw_input()
+		if output_extension.endswith(".wav") or output_extension.endswith(".mp3") or output_extension.endswith(".wma") or output_extension.endswith(".aac") or output_extension.endswith(".ogg") or output_extension.endswith(".flv"):
+			format_right = 0
+
 	
-# # 	if extension == "acc" or extension == ".acc":
-# # 		new.export("song.acc", format="acc")
-# # 		music = pyglet.media.load('new.acc')
+	os.system('cls' if os.name == 'nt' else 'clear')
 
-# # 	if extension == "ogg" or extension == ".ogg":
-# # 		new.export("song.ogg", format="ogg")
-# # 		music = pyglet.media.load('new.ogg')
 
-# # 	if extension == "flv" or extension == ".flv":
-# # 		new.export("song.flv", format="flv")
-# # 		music = pyglet.media.load('new.flv')
+	##converts output to wanted extension
 
-# music.play()
-# pyglet.app.run()
+	path_to_output = "./"+output_name+output_extension
+
+
+	sound = pydub.AudioSegment.from_mp3("./new.wav")
+	if output_extension.endswith(".wav"):
+		sound.export(path_to_output, format="wav")
+	if output_extension.endswith(".mp3"):
+		sound.export(path_to_output, format="mp3")
+	if output_extension.endswith(".wma"):
+		sound.export(path_to_output, format="wma")
+	if output_extension.endswith(".aac"):
+		sound.export(path_to_output, format="acc")
+	if output_extension.endswith(".ogg"):
+		sound.export(path_to_output, format="ogg")
+	if output_extension.endswith(".flv"):
+		sound.export(path_to_output, format="flv")
+
+
+	for subdir, dirs, files in os.walk('./'):
+			for file in files:
+				if file == "temp.wav" or file == "new.wav":
+					os.remove(file)
+
+	os.system('cls' if os.name == 'nt' else 'clear')
+	print("Seu novo arquivov está pronto.\nEle se chama '"+output_name+output_extension+"' e está no mesmo diretorio do seu original\nVocê deseja ouvir o resultado final?\n\n\n")
+
+	answer= raw_input("[Y/N]")
+
+	if answer=="Y" or answer == "y" or answer == "s" or answer=="S":
+		print("\n\n\n\n")
+		play(path_to_output)
+
+	not_finished = 0
