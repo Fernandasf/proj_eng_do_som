@@ -9,6 +9,8 @@ import os
 import time
 import pydub
 import subprocess
+from scipy.signal import *
+
 
 ### FUNCTION THAT SCALES TIME
 
@@ -27,14 +29,12 @@ def vocoder (sinal, tscale):
 
 	###Time-scaling part:
 
-	#This is the processing loop. We ll do the PV idea in a slightly different way
-	#from the example in the book. There, we created a spectral signal made up of
-	#amp,freq frames. Here we will not bother with this, we will just move along
-	#the input, calculating the PV parameters of two consecutive windows and then
-	#resynthesise these straight away. Timescale changes will happen if we move
-	#along the input at a different hopsize than H. The input will be overlap-
-	#added every H samples, which is also the hopsize basis of our PV analyses
-	#(the hop between the two consecutive analyses).
+	#This is the processing loop. We will just move along the input,
+	#calculating the PV parameters of two consecutive windows and then
+	#resynthesise these straight away. Timescale changes will happen if we
+	#move along the input at a different hopsize than H. The input will be
+	#overlap- added every H samples, which is also the hopsize basis of our PV
+	#analyses (the hop between the two consecutive analyses).
 
 	p = 0
 	i = 0
@@ -70,8 +70,11 @@ def vocoder (sinal, tscale):
 
 #The transposing function acts first stretching the original audio file than
 #using doppler effect to change its frequency. The parameters in this function
-#are y: vector in wavefile. The fcale parameter is the frequency scale (e.g. is
-#fscale = 2 the frequecy is twice the first one)
+#are y: vector in wavefile. The fcale parameter is the frequency scale (e.g.
+#is fscale = 2 the frequecy is twice the first one). The only issue in using
+#it is the problem of frequencies that are greater then nyquest frequency,
+#because the common aliasing effect would happen. Since it's not desired, we
+#use a low pass filter so we dont get samples greater the nyquest frequency.
 
 def vocoder_transpose( y, fscale ):
 
@@ -91,6 +94,29 @@ def vocoder_transpose( y, fscale ):
 			  x[i]=x1[j]; 
 	
 	return x
+
+
+## LOW PASS FILTER: we decided to use the butterworth low pass filter since
+## it's native of scipy
+
+def butter_lowpass(cutoff, sr):
+	order = 5
+	#the normal cutoff is a function of fscale simply because the cutoff is
+	#calculated deviding the sample rate  by the transposition factor(in this
+	#case, frequency scale) and in order to normalize it (to get a result from
+	#0 to 1 to use the butter method) it is devided by the sample rate again.
+	#{(sr/fs)/sr = 1/fs}
+	normal_cutoff = 1/fscale
+	b, a = butter(order, normal_cutoff, btype = 'low', analog = False)
+	return b, a
+
+
+
+def butter_lowpassfilter (data, fscale, sr):
+	order = 5
+	b, a = butter_lowpass(fscale, sr)
+	y = lfilter(b, a, data)
+	return y
 
 
 ##This is where our routine starts
@@ -245,10 +271,16 @@ while not_finished:
 
 	### THIS IS WHERE THE VOCODER WORKS
 
-	print("O PROGRAMA ESTÁ RODANDO, AGUARDE UM POUCO (o tempo de processamento dura aproximadamente metade da duração da sua musica).\nNão se preocupe com o erro que aparece abaixo\n\n\n\n\n")
+	print("O PROGRAMA ESTÁ RODANDO, AGUARDE UM POUCO (o tempo de processamento dura aproximadamente a duração da sua musica).\nNão se preocupe com o erro que aparece abaixo\n\n\n\n\n")
 
-
-	x = vocoder_transpose(sinal, fscale)
+	#using a low pass filter in order to stop aliasing from occouring 
+	if fscale >= 1:		
+		sinal_lowpass = butter_lowpassfilter(sinal, fscale, sr)
+	else:
+		sinal_lowpass = sinal
+	#now that there's no chance of aliasing, we transpose and stretch using
+	#the functions described between lines 20 and 120
+	x = vocoder_transpose(sinal_lowpass, fscale)
 	sigout = vocoder(x, tscale)
 
 
