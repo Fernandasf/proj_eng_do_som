@@ -1,7 +1,8 @@
 # Projeto de Phase Vocoder implementado em python
 
->Projeto de Phase Decoder para disciplina de Engenharia do Som II
+Projeto de [Phase Vocoder] para disciplina de Engenharia do Som II
 
+[Phase Vocoder]: https://en.wikipedia.org/wiki/Phase_vocoder
 
 ## Pre requisitos
 
@@ -23,7 +24,10 @@ Todos são facilmente instalados usando:
 	
 	$ sudo pip install <nome_do_módulo>
 
-Tenha certeza que voce tem pip instalado e funcionando corretamente
+Tenha certeza que voce tem pip instalado e funcionando corretamente. Se não tiver pip instalado em seu computador, isso pode ser feito com o seguinte comando em um terminal:
+
+
+	$ sudo apt-get install python-pip
 
 ##Execução
 
