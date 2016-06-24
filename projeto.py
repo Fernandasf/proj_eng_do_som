@@ -338,9 +338,23 @@ while not_finished:
 					os.remove(file)
 
 	os.system('cls' if os.name == 'nt' else 'clear')
-	print("Seu novo arquivov está pronto.\nEle se chama '"+output_name+output_extension+"' e está no mesmo diretorio do seu original\nVocê deseja ouvir o resultado final?\n\n\n")
+	print("Seu novo arquivov está pronto.\nEle se chama '"+output_name+output_extension+"' e está no mesmo diretorio do seu original\nVocê deseja ouvir o audio original\n\n\n")
 
 	answer= raw_input("[Y/N]")
+
+	if answer=="Y" or answer == "y" or answer == "s" or answer=="S":
+		print("\n\n\n\n")
+		play(path_to_name)
+
+	
+	#clears terminal page
+	os.system('cls' if os.name == 'nt' else 'clear')
+
+
+	print("Voce gostaria de ouvir seu novo arquivo?\n\n\n\n")
+
+	answer = raw_input("[Y/N]")
+
 
 	if answer=="Y" or answer == "y" or answer == "s" or answer=="S":
 		print("\n\n\n\n")
