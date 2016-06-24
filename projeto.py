@@ -18,6 +18,12 @@ def play(audio_file_path):
 	subprocess.call(["ffplay", "-nodisp", "-autoexit", audio_file_path])
 
 
+##The vocoder funcion is a time stretcher function. It uses consecutive
+##windows to stretch the audio in a loop fuction. The size of the window and
+##hop is defined by a global variable. The "sinal" parameter is the data
+##parameter of a wave file and the tscale parameter is the wnated time-scaling
+##scale.
+
 def vocoder (sinal, tscale):
 
 	phi  = zeros(N)
@@ -29,21 +35,21 @@ def vocoder (sinal, tscale):
 
 	###Time-scaling part:
 
-	#This is the processing loop. We will just move along the input,
-	#calculating the PV parameters of two consecutive windows and then
-	#resynthesise these straight away. Timescale changes will happen if we
-	#move along the input at a different hopsize than H. The input will be
-	#overlap- added every H samples, which is also the hopsize basis of our PV
-	#analyses (the hop between the two consecutive analyses).
+	#This is the processing loop. We will just move along the input, in two
+	#consecutive windows and then resynthesise these straight away. Timescale
+	#changes will happen if we move along the input at a different hopsize
+	#than H. The input will be overlap- added every H samples, which is also
+	#the hopsize basis of our PV analyses (the hop between the two consecutive
+	#analyses).
 
 	p = 0
 	i = 0
 	pp = 0
 	while p < L-(N+H):
 
-		# take the spectra of two consecutive windows
+		# take the STFT of two consecutive windows (it is a STFT simply because of the window size, not by default method)
 		p1 = int(p)
-		spec1 =  fft(win*sinal[p1:p1+N])
+		spec1 =  fft(win*sinal[p1:p1+N]) 
 		spec2 =  fft(win*sinal[p1+H:p1+N+H])
 
 		## take their phase difference and integrate
@@ -77,7 +83,7 @@ def vocoder (sinal, tscale):
 #use a low pass filter so we dont get samples greater the nyquest frequency.
 
 def vocoder_transpose( y, fscale ):
-
+	
 	x1 = vocoder(y,1/fscale)
 	x = zeros(round(len(x1)/fscale))
 	
@@ -346,7 +352,7 @@ while not_finished:
 		print("\n\n\n\n")
 		play(path_to_name)
 
-	
+
 	#clears terminal page
 	os.system('cls' if os.name == 'nt' else 'clear')
 
