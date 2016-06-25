@@ -280,10 +280,11 @@ while not_finished:
 	print("O PROGRAMA ESTÁ RODANDO, AGUARDE UM POUCO (o tempo de processamento dura aproximadamente a duração da sua musica).\nNão se preocupe com o erro que aparece abaixo\n\n\n\n\n")
 
 	#using a low pass filter in order to stop aliasing from occouring 
-	if fscale >= 1:		
+	if fscale > 1:		
 		sinal_lowpass = butter_lowpassfilter(sinal, fscale, sr)
 	else:
 		sinal_lowpass = sinal
+
 	#now that there's no chance of aliasing, we transpose and stretch using
 	#the functions described between lines 20 and 120
 	x = vocoder_transpose(sinal_lowpass, fscale)
